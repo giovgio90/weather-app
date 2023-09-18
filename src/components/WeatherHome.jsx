@@ -14,7 +14,7 @@ function WeatherHome() {
 
   const handleCitySubmit = (e) => {
     e.preventDefault();
-    if (city) {
+    if (city.trim().length >= 2) {
       setLoading(true);
       setCityNotFound(false);
 
@@ -31,15 +31,22 @@ function WeatherHome() {
         })
         .then((response) => response.json())
         .then((data) => {
-          setWeatherData(data);
-          setLoading(false);
-          setShowCity(true);
-          setFoundCity(city.charAt(0).toUpperCase() + city.slice(1));
+          if (data.name.toLowerCase() === city.toLowerCase()) {
+            setWeatherData(data);
+            setLoading(false);
+            setShowCity(true);
+            setFoundCity(data.name);
+          } else {
+            setCityNotFound(true);
+            setLoading(false);
+          }
         })
         .catch((error) => {
           console.error(error);
           setLoading(false);
         });
+    } else {
+      console.log("La città è troppo corta");
     }
   };
 
@@ -48,12 +55,12 @@ function WeatherHome() {
 
   return (
     <Container>
-      <h1 className="text-white">WEATHER APP</h1>
+      <h4 className="text-start text-white">WEATHER APP</h4>
       <Row className="my-5">
         <Col sm={6} className="my-auto">
           <Form onSubmit={handleCitySubmit}>
             <Form.Group controlId="cityInput">
-              <Form.Label className="text-white fs-3">Your City</Form.Label>
+              <Form.Label className="text-white fs-5 ">Search location</Form.Label>
               <div className="input-group">
                 <Form.Control
                   type="text"
@@ -61,19 +68,25 @@ function WeatherHome() {
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                 />
-                <button type="submit" className="btn btn-primary">
-                  <i className="fas fa-search"></i>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ border: "none", backgroundColor: "transparent" }}
+                >
+                  <i className="fas fa-search fs-4"></i>
                 </button>
               </div>
             </Form.Group>
             {cityNotFound && <p className="text-danger">This city does not exist</p>}
           </Form>
         </Col>
+      </Row>
+      <Row className="my-5">
         <Col sm={6}>
           <Link
             to={{
-              pathname: `/forecast/${city}`, // Passa il parametro city nella URL
-              state: { forecastData: weatherData }, // Passa i dati del forecast come stato
+              pathname: `/forecast/${city}`,
+              state: { forecastData: weatherData },
             }}
             className="text-decoration-none"
           >
@@ -82,8 +95,8 @@ function WeatherHome() {
                 background: "rgba(255, 255, 255, 0.8)",
                 borderRadius: "10px",
                 padding: "10px",
-                minHeight: "80vh",
-                minWidth: "80vh",
+                minHeight: "50vh",
+                minWidth: "100vh",
               }}
             >
               <Card.Body>
@@ -91,7 +104,13 @@ function WeatherHome() {
                   <p>Loading...</p>
                 ) : showCity && weatherData && weatherData.weather ? (
                   <>
-                    <h3 className="display-2 fw-bold">{foundCity}</h3>
+                    <div className="current-time text-start">
+                      <p>Current weather</p>
+                      <Clock format="HH:mm" interval={1000} ticking={true} />
+                    </div>
+                    <h3 className="display-2 fw-bold">
+                      {foundCity}, {weatherData.sys.country}
+                    </h3>
                     {weatherData.weather[0].description && (
                       <div className="d-flex justify-content-center align-items-center">
                         <img src={iconUrl} alt="Weather Icon" style={{ width: "70px" }} />
@@ -101,12 +120,10 @@ function WeatherHome() {
                         </p>
                       </div>
                     )}
+
                     {weatherData.main && weatherData.main.temp && (
-                      <p className="display-5">{weatherData.main.temp}°C</p>
+                      <p className="display-5">{(weatherData.main.temp - 273.15).toFixed(0)}°C</p>
                     )}
-                    <div className="current-time">
-                      <Clock format="HH:mm:ss" interval={1000} ticking={true} />
-                    </div>
                   </>
                 ) : null}
               </Card.Body>
