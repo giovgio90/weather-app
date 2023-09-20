@@ -1,13 +1,101 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { Card, Carousel, Col, Container, Row } from "react-bootstrap";
 import { useParams } from "react-router-dom";
+
+function CustomCarousel({ items, itemsPerSlide }) {
+  const [index, setIndex] = useState(0);
+
+  const handleSelect = (selectedIndex) => {
+    setIndex(selectedIndex);
+  };
+
+  const totalSlides = Math.ceil(items.length / itemsPerSlide);
+
+  const convertToKmph = (metersPerSecond) => {
+    return (metersPerSecond * 3.6).toFixed(2);
+  };
+
+  const slides = [];
+  for (let i = 0; i < totalSlides; i++) {
+    const startIndex = i * itemsPerSlide;
+    const endIndex = startIndex + itemsPerSlide;
+    const slideItems = items.slice(startIndex, endIndex);
+
+    slides.push(
+      <Carousel.Item key={i}>
+        <Row className="justify-content-center mt-5">
+          {slideItems.map((item, subIndex) => (
+            <Col key={subIndex} sm={6} md={6} lg={3} className="d-flex">
+              <Card className="bg-white bg-opacity-75 rounded p-3 my-2 w-100">
+                <Card.Body>
+                  <div className="text-start d-flex">
+                    <div>
+                      <h2>
+                        {item.dayOfWeek.slice(0, 3)} {item.dt_txt.slice(8, 10)}
+                      </h2>
+                    </div>
+                    <div className="align-self-center ms-auto">
+                      <h6>{item.dt_txt.slice(10, 16)}</h6>
+                    </div>
+                  </div>
+                  <div className="d-flex justify-content-center">
+                    <p className="display-4 fw-bold mb-0">{item.main.temp.toFixed(0)}</p>
+                    <h6 className="mb-0 align-self-center pb-3 pb-lg-4">°C</h6>
+                  </div>
+                  <p className="fw-bolder">
+                    {" "}
+                    {item.weather[0].icon && (
+                      <img
+                        src={`https://openweathermap.org/img/wn/${item.weather[0].icon}.png`}
+                        alt=""
+                        style={{ width: "50px" }}
+                      />
+                    )}{" "}
+                    {item.weather[0].description}
+                  </p>
+                  <p className="text-start">
+                    Wind Speed: <strong>{convertToKmph(item.wind.speed)} km/h</strong>
+                  </p>{" "}
+                  {/* Conversione da m/s a km/h */}
+                  <p className="text-start">
+                    Humidity: <strong>{item.main.humidity}%</strong>
+                  </p>
+                  <p className="text-start">
+                    Rain percentage: <strong>{(item.pop * 100).toFixed(0)}%</strong>
+                  </p>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Carousel.Item>
+    );
+  }
+
+  return (
+    <Carousel
+      activeIndex={index}
+      onSelect={handleSelect}
+      indicators={false}
+      prevIcon={<span aria-hidden="true" className="carousel-control-prev-icon custom-icon d-none" />}
+      nextIcon={<span aria-hidden="true" className="carousel-control-next-icon custom-icon d-none" />}
+    >
+      {slides}
+    </Carousel>
+  );
+}
 
 function CityDetails() {
   const { city } = useParams();
   const [forecastData, setForecastData] = useState([]);
   const apiKey = "ec0ea160e0ae5df26aa10523ea3fc83b";
 
-  const kelvinToCelsius = (kelvin) => {
-    return kelvin - 273.15;
+  const kelvinToCelsius = (kelvin) => kelvin - 273.15;
+
+  const getDayOfWeek = (timestamp) => {
+    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const date = new Date(timestamp * 1000);
+    return daysOfWeek[date.getDay()];
   };
 
   useEffect(() => {
@@ -17,12 +105,14 @@ function CityDetails() {
           const response = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}`);
           const data = await response.json();
 
-          const forecastDataWithCelsius = data.list.slice(1, 5).map((item) => ({
+          const forecastDataWithCelsius = data.list.map((item) => ({
             ...item,
             main: {
               ...item.main,
               temp: kelvinToCelsius(item.main.temp),
             },
+            dayOfWeek: getDayOfWeek(item.dt),
+            dayOfWeekPrecise: new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(new Date(item.dt * 1000)),
           }));
 
           setForecastData(forecastDataWithCelsius);
@@ -35,22 +125,16 @@ function CityDetails() {
     }
   }, [city, apiKey]);
 
+  const currentTimestamp = Date.now() / 1000;
+
+  const futureForecastData = forecastData.filter((item) => item.dt > currentTimestamp);
+
   return (
-    <div>
-      <h1>Weather Forecast for {city}</h1>
-      {forecastData.length > 0 ? (
-        forecastData.map((item, index) => (
-          <div key={index} className="d-flex">
-            <h2>Day {index + 2}</h2>
-            <p>Temperature: {item.main.temp.toFixed(0)}°C</p>
-            <p>Description: {item.weather[0].description}</p>
-            <p>Humidity: {item.main.humidity}%</p>
-          </div>
-        ))
-      ) : (
-        <div>No forecast data available.</div>
-      )}
-    </div>
+    <Container>
+      <h4 className="text-white text-start">Weather Forecast for {city}</h4>
+
+      <CustomCarousel items={futureForecastData} itemsPerSlide={4} />
+    </Container>
   );
 }
 
