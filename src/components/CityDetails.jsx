@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
+import { IoIosWater } from "react-icons/io";
+import { FiWind } from "react-icons/fi";
+import { FaCloudRain } from "react-icons/fa";
 import { Card, Carousel, Col, Container, Row } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 function CustomCarousel({ items, itemsPerSlide }) {
   const [index, setIndex] = useState(0);
@@ -26,7 +29,10 @@ function CustomCarousel({ items, itemsPerSlide }) {
         <Row className="justify-content-center mt-5">
           {slideItems.map((item, subIndex) => (
             <Col key={subIndex} sm={6} md={6} lg={3} className="d-flex">
-              <Card className="bg-white bg-opacity-75 rounded p-3 my-2 w-100">
+              <Card
+                className="bg-white bg-opacity-75 rounded p-3 my-2 w-100"
+                style={{ boxShadow: "9px 10px 6px -3px rgba(0,0,0,0.1)" }}
+              >
                 <Card.Body>
                   <div className="text-start d-flex">
                     <div>
@@ -54,13 +60,16 @@ function CustomCarousel({ items, itemsPerSlide }) {
                     {item.weather[0].description}
                   </p>
                   <p className="text-start">
+                    <FiWind className="me-1" />
                     Wind Speed: <strong>{convertToKmph(item.wind.speed)} km/h</strong>
                   </p>{" "}
                   {/* Conversione da m/s a km/h */}
                   <p className="text-start">
+                    <IoIosWater className="text-primary me-1" />
                     Humidity: <strong>{item.main.humidity}%</strong>
                   </p>
                   <p className="text-start">
+                    <FaCloudRain className="me-1" />
                     Rain percentage: <strong>{(item.pop * 100).toFixed(0)}%</strong>
                   </p>
                 </Card.Body>
@@ -134,6 +143,14 @@ function CityDetails() {
       <h4 className="text-white text-start">Weather Forecast for {city}</h4>
 
       <CustomCarousel items={futureForecastData} itemsPerSlide={4} />
+      <Link
+        to={{
+          pathname: `/`,
+        }}
+        style={{ textDecoration: "none" }}
+      >
+        <h3 className="text-white mt-5">Back to search</h3>
+      </Link>
     </Container>
   );
 }

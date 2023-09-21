@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Alert, Card, Col, Container, Form, Row } from "react-bootstrap";
+import { IoIosWater } from "react-icons/io";
+import { FiWind } from "react-icons/fi";
+import { FaTemperatureHigh, FaCloud } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import welcomeImage from "../assets/images/v2osk-1Z2niiBPg5A-unsplash.jpg"; // Importa l'immagine
 
@@ -33,6 +36,7 @@ function WeatherHome() {
             throw new Error("City not found");
           }
         })
+
         .then((response) => response.json())
         .then((data) => {
           if (data.name.toLowerCase() === city.toLowerCase()) {
@@ -61,9 +65,13 @@ function WeatherHome() {
     minute: "2-digit",
   });
 
+  const convertToKmph = (metersPerSecond) => {
+    return (metersPerSecond * 3.6).toFixed(2);
+  };
+
   return (
     <Container>
-      <h4 className="text-start text-white">WEATHER APP</h4>
+      <h4 className="text-sm-center text-md-start text-white">WEATHER APP</h4>
       <Row className="my-5 justify-content-center">
         <Col sm={12} md={12} lg={10} className="my-auto">
           <Form onSubmit={handleCitySubmit}>
@@ -107,6 +115,7 @@ function WeatherHome() {
                 borderRadius: "10px",
                 padding: "10px",
                 minHeight: "400px",
+                boxShadow: "9px 10px 6px -3px rgba(0,0,0,0.1)",
               }}
             >
               <Card.Body>
@@ -118,8 +127,8 @@ function WeatherHome() {
                       <>
                         <Row>
                           <Col xs={6}>
-                            <h5 className="text-start">Current weather</h5>
-                            <p className="text-start">{currentTime}</p>
+                            <h5 className="text-start fw-bolder">Current weather</h5>
+                            <h6 className="text-start">{currentTime}</h6>
                           </Col>
                           <Col xs={6}>
                             <h3 className="display-4 text-end" style={{ fontWeight: "400" }}>
@@ -128,27 +137,25 @@ function WeatherHome() {
                           </Col>
                         </Row>
                         <Row>
-                          <Col xs={6} className="d-flex align-self-center">
+                          <Col xs={6} className="d-sm-flex justify-sm-between align-self-center">
                             <div className="text-start">
                               <p>
-                                Humidity: <strong>{weatherData.main.humidity}</strong>
+                                <IoIosWater className="text-primary me-1" />
+                                Humidity: <strong>{weatherData.main.humidity}%</strong>
                               </p>
                               <p>
-                                Pressure: <strong>{weatherData.main.pressure}</strong>
-                              </p>
-                              <p>
-                                Visibility: <strong>{weatherData.visibility}</strong>
+                                <FaTemperatureHigh className="text-danger me-1" />
+                                Pressure: <strong>{weatherData.main.pressure}mb</strong>
                               </p>
                             </div>
                             <div className="text-start ms-auto">
                               <p>
-                                Speed wind: <strong>{weatherData.wind.speed}</strong>
+                                <FiWind className="me-1" />
+                                Speed wind: <strong>{convertToKmph(weatherData.wind.speed)} km/h</strong>
                               </p>
                               <p>
-                                Clouds: <strong>{weatherData.clouds.all}</strong>
-                              </p>
-                              <p>
-                                Deg: <strong>{weatherData.wind.deg}</strong>
+                                <FaCloud className="me-1" />
+                                Clouds: <strong>{weatherData.clouds.all}%</strong>
                               </p>
                             </div>
                           </Col>
@@ -158,7 +165,7 @@ function WeatherHome() {
                                 <p style={{ fontSize: "6.5rem" }} className="fw-bold">
                                   {(weatherData.main.temp - 273.15).toFixed(0)}
                                 </p>
-                                <h6 className="align-self-center pb-5 pb-md-5 pb-lg-5">°C</h6>
+                                <h5 className="align-self-center pb-5 pb-md-5 pb-lg-5">°C</h5>
                               </div>
                             )}
                             {weatherData.weather[0].description && (
